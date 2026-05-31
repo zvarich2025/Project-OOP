@@ -4,30 +4,47 @@ namespace TaxiDispatcher
 {
     public class Driver
     {
-        // Поля (Властивості)
-        public string FullName { get; set; }
-        public string CarModel { get; set; }
-        public string LicensePlate { get; set; }
-        public bool IsAvailable { get; set; }
+        // Відкрита властивість читання та запису з валідацією
+        private string fullName;
+        public string FullName
+        {
+            get { return fullName; }
+            set { fullName = !string.IsNullOrWhiteSpace(value) ? value : "Ім'я відсутнє"; }
+        }
 
-        // Конструктор
+        public string CarModel { get; set; }
+
+        // Властивість тільки для читання (Read-only)
+        public string LicensePlate { get; }
+
+        // 4. Закритий конструктор (Private constructor)
+        // Зазвичай використовується, щоб заборонити створення об'єктів ззовні без параметрів
+        private Driver()
+        {
+            FullName = "Системний водій";
+            CarModel = "Службове авто";
+            LicensePlate = "AA0000AA";
+        }
+
+        // 2. Конструктор з параметрами
         public Driver(string fullName, string carModel, string licensePlate)
         {
             FullName = fullName;
             CarModel = carModel;
             LicensePlate = licensePlate;
-            IsAvailable = true; // За замовчуванням вільний
+            Console.WriteLine($"[Конструктор з параметрами]: Зареєстровано водія {FullName} на {CarModel}");
         }
 
-        // Методи
-        public void AcceptOrder()
+        // 6. Конструктор, що викликає інший конструктор (Перевантаження для експрес-реєстрації)
+        public Driver(string fullName, string licensePlate) : this(fullName, "Стандартне авто", licensePlate)
         {
-            // Реалізація прийому замовлення водієм
+            Console.WriteLine("[Конструктор з викликом іншого]: Водію присвоєно стандартне авто.");
         }
 
-        public void CompleteOrder()
+        // Фабричний метод, який використовує закритий конструктор
+        public static Driver CreateSystemDriver()
         {
-            // Реалізація завершення поїздки
+            return new Driver();
         }
     }
 }

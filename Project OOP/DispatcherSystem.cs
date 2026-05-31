@@ -4,24 +4,27 @@ namespace TaxiDispatcher
 {
     public class DispatcherSystem
     {
-        // Поля (Властивості) - у майбутньому тут будуть списки List<Driver> тощо
-        public string SystemName { get; set; }
+        public string Title { get; set; }
 
-        // Конструктор
-        public DispatcherSystem(string systemName)
+        // Властивість читання-запису
+        private bool isActive;
+        public bool IsActive
         {
-            SystemName = systemName;
+            get { return isActive; }
+            set { isActive = value; }
         }
 
-        // Методи
-        public void AssignDriverToOrder()
+        // 1. Конструктор без параметрів
+        public DispatcherSystem() : this("Єдина Диспетчерська") // 6. Виклик іншого конструктора
         {
-            // Логіка автоматичного пошуку найближчого водія
         }
 
-        public void CalculatePrice()
+        // 2. Конструктор з параметрами
+        public DispatcherSystem(string title)
         {
-            // Логіка розрахунку вартості за кілометраж
+            Title = title;
+            IsActive = true;
+            Console.WriteLine($"[Конструктор з параметрами]: Запущено систему '{Title}'");
         }
     }
 }
