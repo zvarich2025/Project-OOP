@@ -2,7 +2,6 @@
 
 namespace TaxiDispatcher
 {
-    // Абстрактний базовий клас для Пасажира та Водія
     public abstract class Person
     {
         public string Name { get; set; }
@@ -14,7 +13,6 @@ namespace TaxiDispatcher
             PhoneNumber = phoneNumber;
         }
 
-        // Абстрактний метод, який обов'язково треба реалізувати в нащадках
         public abstract void PrintRole();
     }
 }
