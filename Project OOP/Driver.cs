@@ -7,39 +7,61 @@ namespace TaxiDispatcher
         public string FullName { get; set; }
         public string CarModel { get; set; }
         public string LicensePlate { get; }
-        public bool IsAvailable { get; set; } // Поле стану водія
-
-        private Driver()
-        {
-            FullName = "Системний водій";
-            CarModel = "Службове авто";
-            LicensePlate = "AA0000AA";
-            IsAvailable = false;
-        }
+        public bool IsAvailable { get; set; }
+        public int CompletedTrips { get; set; } // Задача 2 пріоритету (Облік поїздок)
 
         public Driver(string fullName, string carModel, string licensePlate)
         {
             FullName = fullName;
             CarModel = carModel;
             LicensePlate = licensePlate;
-            IsAvailable = true; // За замовчуванням водій вільний і готовий до роботи
+            IsAvailable = true;
+            CompletedTrips = 0;
         }
 
-        public Driver(string fullName, string licensePlate) : this(fullName, "Стандартне авто", licensePlate) { }
+        public bool IsReadyForOrder() => IsAvailable && !string.IsNullOrEmpty(FullName);
+        public void ToggleAvailability(bool status) => IsAvailable = status;
 
-        public static Driver CreateSystemDriver() => new Driver();
+        // --- ПЕРЕВАНТАЖЕННЯ ОПЕРАТОРІВ ---
 
-        // --- ПРЕДИКАТНА ФУНКЦІЯ ---
-        // Перевіряє, чи активний водій і чи може він взяти замовлення прямо зараз
-        public bool IsReadyForOrder()
+        // 1. Унарні ++ та -- (Збільшення/зменшення кількості виконаних поїздок)
+        public static Driver operator ++(Driver d)
         {
-            return IsAvailable && !string.IsNullOrEmpty(FullName);
+            d.CompletedTrips++;
+            return d;
         }
 
-        // Методи зміни стану
-        public void ToggleAvailability(bool status)
+        public static Driver operator --(Driver d)
         {
-            IsAvailable = status;
+            if (d.CompletedTrips > 0) d.CompletedTrips--;
+            return d;
         }
+
+        // 2. Унарні + та - (Швидке перемикання статусу: + вийшов на зміну, - пішов зі зміни)
+        public static Driver operator +(Driver d)
+        {
+            d.IsAvailable = true;
+            return d;
+        }
+
+        public static Driver operator -(Driver d)
+        {
+            d.IsAvailable = false;
+            return d;
+        }
+
+        // 3. Оператори порівняння == та != (Перевірка, чи це один і той самий водій за номерами авто)
+        public static bool operator ==(Driver d1, Driver d2)
+        {
+            if (ReferenceEquals(d1, d2)) return true;
+            if (d1 is null || d2 is null) return false;
+            return d1.LicensePlate == d2.LicensePlate;
+        }
+
+        public static bool operator !=(Driver d1, Driver d2) => !(d1 == d2);
+
+        // Системні перевизначення для коректної роботи ==
+        public override bool Equals(object obj) => obj is Driver driver && this == driver;
+        public override int GetHashCode() => LicensePlate?.GetHashCode() ?? 0;
     }
 }
