@@ -7,9 +7,9 @@ namespace TaxiDispatcher
         static void Main(string[] args)
         {
             // Службова інформація (ЗАМІНІТЬ НА СВОЇ ДАНІ)
-            Console.WriteLine("ПІБ студента: Іванов Іван Іванович");
-            Console.WriteLine("Курс: 2");
-            Console.WriteLine("Група: ІП-41");
+            Console.WriteLine("ПІБ студента: Зварич Владислав Вячеславович");
+            Console.WriteLine("Курс: 1");
+            Console.WriteLine("Група: ІПЗ-12");
             Console.WriteLine("Варіант завдання: 44 (Диспетчерська служба таксопарку)");
             Console.WriteLine("Версія: 2 (Конструктори та аксесори класів)");
             Console.WriteLine("--------------------------------------------------\n");
