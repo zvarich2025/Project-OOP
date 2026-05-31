@@ -6,59 +6,58 @@ namespace TaxiDispatcher
     {
         static void Main(string[] args)
         {
-            // Службова інформація (ЗАМІНІТЬ НА СВОЇ ДАНІ)
+            // Службова інформація
             Console.WriteLine("ПІБ студента: Зварич Владислав Вячеславович");
             Console.WriteLine("Курс: 1");
             Console.WriteLine("Група: ІПЗ-12");
             Console.WriteLine("Варіант завдання: 44 (Диспетчерська служба таксопарку)");
-            Console.WriteLine("Версія: 2 (Конструктори та аксесори класів)");
+            Console.WriteLine("Версія: 3 (Реалізація предикатних функцій та методів)");
             Console.WriteLine("--------------------------------------------------\n");
 
             Console.WriteLine("Старт імітації");
             Console.WriteLine("==================================================");
 
-            // --- ДЕМОНСТРАЦІЯ РОБОТИ КОНСТРУКТОРІВ ТА АКСЕСОРІВ ---
+            // 1. Ініціалізація системи та сутностей
+            DispatcherSystem centralDispatcher = new DispatcherSystem("SmartCity Taxi");
 
-            // 1. Тест статичного конструктора та властивості тільки для читання
-            Console.WriteLine($"\n[Тест]: Кількість пасажирів до створення: {Passenger.TotalPassengers}");
+            Passenger passengerGood = new Passenger("Олексій Новіков", "+380931112233", 500.0);
+            Passenger passengerPoor = new Passenger("Бідний Студент", "+380507778899", 20.0); // Мало грошей
 
-            // 2. Тест конструктора з параметрами + Властивості, що автоматично реалізуються
-            Passenger passenger1 = new Passenger("Олексій Петренко", "+380501112233");
+            Driver driverStandard = new Driver("Микола Грицай", "Renault Logan", "AA7711BB");
 
-            // 3. Тест конструктора без параметрів (який викликає інший конструктор через :this)
-            Passenger passengerDefault = new Passenger();
-
-            // 4. Тест конструктора копії
-            Passenger passengerCopy = new Passenger(passenger1);
-            Console.WriteLine($"[Протокол аксесорів]: Ім'я копії пасажира: {passengerCopy.Name}");
-
-            Console.WriteLine($"\n[Тест]: Загальна кількість пасажирів тепер: {Passenger.TotalPassengers}");
+            // 2. Виклик предикатів для перевірки стану перед бізнес-процесом
+            Console.WriteLine("\n--- ПЕРЕВІРКА СТАНІВ ОБ'ЄКТІВ (ПРЕДИКАТИ) ---");
+            Console.WriteLine($"Чи валідні контакти пасажира 1? {passengerGood.HasValidContactInfo()}");
+            Console.WriteLine($"Чи готовий водій Микола до роботи? {driverStandard.IsReadyForOrder()}");
+            Console.WriteLine($"Чи вистачить грошей бідному пасажиру на поїздку за 150 грн? {passengerPoor.CanAffordRide(150.0)}");
             Console.WriteLine("--------------------------------------------------");
 
-            // 5. Тест конструктора водія з перевантаженням (this) та властивостей з валідацією
-            Driver driver1 = new Driver("Сергій Коваленко", "Skoda Octavia", "AA5555XX");
-            Driver driver2 = new Driver("Андрій Бондар", "AI99999BB"); // Викличе дефолтне авто
+            // 3. СЦЕНАРІЙ №1: Спроба замовлення з недостатнім балансом
+            Console.WriteLine("\n[СЦЕНАРІЙ 1]: Замовлення від пасажира з малим балансом");
+            Order orderFail = new Order(1, passengerPoor, driverStandard, "вул. Політехнічна", "вул. Хрещатик");
 
-            // 6. Тест закритого конструктора через фабричний метод
-            Driver systemDriver = Driver.CreateSystemDriver();
-            Console.WriteLine($"[Протокол аксесорів]: Закритий конструктор створив: {systemDriver.FullName} ({systemDriver.LicensePlate})");
-            Console.WriteLine("--------------------------------------------------");
+            centralDispatcher.DispatchLog(orderFail);
+            Console.WriteLine($"Поточний статус замовлення №1 в системі: {orderFail.Status}");
+            Console.WriteLine($"Предикат активності поїздки: {orderFail.IsActiveTrip()}");
 
-            // 7. Тест зв'язків АГРЕГАЦІЇ та КОМПОЗИЦІЇ в класі Order
-            Console.WriteLine("\nСтворення замовлення (Агрегація водія/пасажира + Композиція маршруту):");
-            Order order1 = new Order(101, passenger1, driver1, "вул. Хрещатик, 24", "Аеропорт Бориспіль", 450.0);
+            // 4. СЦЕНАРІЙ №2: Успішне замовлення
+            Console.WriteLine("\n[СЦЕНАРІЙ 2]: Замовлення від платоспроможного пасажира");
+            Order orderSuccess = new Order(2, passengerGood, driverStandard, "вул. Політехнічна", "Аеропорт");
 
-            // Вивід значень атрибутів (Протокол аксесорів)
-            Console.WriteLine("\n[ПРОТОКОЛ АТРИБУТІВ ЗАМОВЛЕННЯ №1]:");
-            Console.WriteLine($"Пасажир: {order1.CurrentPassenger.Name} (Тел: {order1.CurrentPassenger.PhoneNumber})");
-            Console.WriteLine($"Водій: {order1.AssignedDriver.FullName} (Авто: {order1.AssignedDriver.CarModel})");
-            Console.WriteLine($"Маршрут (Композиція): З [{order1.Route.StartPoint}] до [{order1.Route.EndPoint}]");
-            Console.WriteLine($"Вартість: {order1.Price} грн.");
+            // Перевіримо предикат валідності створеного маршруту всередині замовлення
+            Console.WriteLine($"Внутрішній предикат: чи коректний маршрут замовлення? {orderSuccess.Route.IsValidRoute()}");
 
-            // 8. Тест конструктора копії для Order (Глибоке копіювання маршруту)
-            Order orderRebooked = new Order(order1, 102);
-            Console.WriteLine($"\n[ПРОТОКОЛ КОПІЇ ЗАМОВЛЕННЯ №2]:");
-            Console.WriteLine($"Нове замовлення: №{orderRebooked.OrderId}, Маршрут: {orderRebooked.Route.StartPoint} -> {orderRebooked.Route.EndPoint}");
+            // Диспетчер обробляє замовлення
+            centralDispatcher.DispatchLog(orderSuccess);
+            Console.WriteLine($"Предикат активності поїздки тепер: {orderSuccess.IsActiveTrip()}");
+            Console.WriteLine($"Залишок балансу пасажира: {passengerGood.Balance} грн.");
+            Console.WriteLine($"Чи вільний водій Микола тепер? {driverStandard.IsAvailable}");
+
+            // 5. Завершення успішної поїздки
+            Console.WriteLine("\n--- ЗАВЕРШЕННЯ ПОЇЗДКИ ---");
+            orderSuccess.CompleteTrip();
+            Console.WriteLine($"Статус замовлення №2 після фінішу: {orderSuccess.Status}");
+            Console.WriteLine($"Чи вільний водій Микола знову? {driverStandard.IsAvailable}");
 
             Console.WriteLine("==================================================");
             Console.WriteLine("Фініш імітації");

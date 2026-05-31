@@ -5,26 +5,30 @@ namespace TaxiDispatcher
     public class DispatcherSystem
     {
         public string Title { get; set; }
+        public bool IsActive { get; set; }
 
-        // Властивість читання-запису
-        private bool isActive;
-        public bool IsActive
-        {
-            get { return isActive; }
-            set { isActive = value; }
-        }
+        public DispatcherSystem() : this("Єдина Диспетчерська") { }
 
-        // 1. Конструктор без параметрів
-        public DispatcherSystem() : this("Єдина Диспетчерська") // 6. Виклик іншого конструктора
-        {
-        }
-
-        // 2. Конструктор з параметрами
         public DispatcherSystem(string title)
         {
             Title = title;
             IsActive = true;
-            Console.WriteLine($"[Конструктор з параметрами]: Запущено систему '{Title}'");
+        }
+
+        // Метод координації бізнес-процесу
+        public void DispatchLog(Order order)
+        {
+            Console.WriteLine($"[Диспетчер {Title}]: Обробка замовлення №{order.OrderId}...");
+            bool success = order.ProcessOrder();
+
+            if (success)
+            {
+                Console.WriteLine($"[УСПІХ]: Замовлення схвалено! Вартість: {order.Price} грн. Статус: {order.Status}");
+            }
+            else
+            {
+                Console.WriteLine($"[ВІДХИЛЕНО]: Не вдалося виконати. Причина: {order.Status}");
+            }
         }
     }
 }

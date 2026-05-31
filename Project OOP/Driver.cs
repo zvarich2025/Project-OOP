@@ -4,47 +4,42 @@ namespace TaxiDispatcher
 {
     public class Driver
     {
-        // Відкрита властивість читання та запису з валідацією
-        private string fullName;
-        public string FullName
-        {
-            get { return fullName; }
-            set { fullName = !string.IsNullOrWhiteSpace(value) ? value : "Ім'я відсутнє"; }
-        }
-
+        public string FullName { get; set; }
         public string CarModel { get; set; }
-
-        // Властивість тільки для читання (Read-only)
         public string LicensePlate { get; }
+        public bool IsAvailable { get; set; } // Поле стану водія
 
-        // 4. Закритий конструктор (Private constructor)
-        // Зазвичай використовується, щоб заборонити створення об'єктів ззовні без параметрів
         private Driver()
         {
             FullName = "Системний водій";
             CarModel = "Службове авто";
             LicensePlate = "AA0000AA";
+            IsAvailable = false;
         }
 
-        // 2. Конструктор з параметрами
         public Driver(string fullName, string carModel, string licensePlate)
         {
             FullName = fullName;
             CarModel = carModel;
             LicensePlate = licensePlate;
-            Console.WriteLine($"[Конструктор з параметрами]: Зареєстровано водія {FullName} на {CarModel}");
+            IsAvailable = true; // За замовчуванням водій вільний і готовий до роботи
         }
 
-        // 6. Конструктор, що викликає інший конструктор (Перевантаження для експрес-реєстрації)
-        public Driver(string fullName, string licensePlate) : this(fullName, "Стандартне авто", licensePlate)
+        public Driver(string fullName, string licensePlate) : this(fullName, "Стандартне авто", licensePlate) { }
+
+        public static Driver CreateSystemDriver() => new Driver();
+
+        // --- ПРЕДИКАТНА ФУНКЦІЯ ---
+        // Перевіряє, чи активний водій і чи може він взяти замовлення прямо зараз
+        public bool IsReadyForOrder()
         {
-            Console.WriteLine("[Конструктор з викликом іншого]: Водію присвоєно стандартне авто.");
+            return IsAvailable && !string.IsNullOrEmpty(FullName);
         }
 
-        // Фабричний метод, який використовує закритий конструктор
-        public static Driver CreateSystemDriver()
+        // Методи зміни стану
+        public void ToggleAvailability(bool status)
         {
-            return new Driver();
+            IsAvailable = status;
         }
     }
 }

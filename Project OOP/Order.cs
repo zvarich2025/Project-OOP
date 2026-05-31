@@ -4,52 +4,85 @@ namespace TaxiDispatcher
 {
     public class Order
     {
-        // Реалізація АГРЕГАЦІЇ: замовлення містить посилання на сторонні об'єкти
         public Passenger CurrentPassenger { get; set; }
         public Driver AssignedDriver { get; set; }
-
-        // Реалізація КОМПОЗИЦІЇ: об'єкт маршруту створюється виключно всередині замовлення
         public TripRoute Route { get; private set; }
-
         public int OrderId { get; set; }
-        public double Price { get; set; }
+        public double Price { get; private set; }
+        public string Status { get; private set; }
 
-        // 1. Конструктор без параметрів
         public Order()
         {
             OrderId = 0;
             Price = 0.0;
-            Route = new TripRoute(); // Композиція за замовчуванням
-            Console.WriteLine("[Конструктор без параметрів]: Створено порожнє замовлення.");
+            Route = new TripRoute();
+            Status = "Нове";
         }
 
-        // 2. Конструктор з параметрами (Демонструє Агрегацію та Композицію)
-        public Order(int orderId, Passenger passenger, Driver driver, string start, string end, double price)
+        public Order(int orderId, Passenger passenger, Driver driver, string start, string end)
         {
             OrderId = orderId;
-            Price = price;
-
-            // Агрегація (приймаємо готові об'єкти ззовні)
             CurrentPassenger = passenger;
             AssignedDriver = driver;
-
-            // Композиція (об'єкт маршруту створюється ТУТ і належить замовленню)
             Route = new TripRoute(start, end);
-
-            Console.WriteLine($"[Конструктор з параметрами]: Створено Замовлення №{OrderId} (Агрегація + Композиція)");
+            Status = "Нове";
+            CalculateOrderPrice(); // Автоматичний розрахунок при створенні
         }
 
-        // 5. Конструктор копії (Глибоке копіювання композиції)
-        public Order(Order previousOrder, int newId)
+        // --- МЕТОД РОЗРАХУНКУ ВАРТОСТІ ---
+        private void CalculateOrderPrice()
         {
-            this.OrderId = newId;
-            this.Price = previousOrder.Price;
-            this.CurrentPassenger = previousOrder.CurrentPassenger; // Копія посилання (агрегація)
-            this.AssignedDriver = previousOrder.AssignedDriver;
+            // Імітація розрахунку: базова ставка 50 грн + довжина назв вулиць як сурогат відстані
+            double distanceFactor = (Route.StartPoint.Length + Route.EndPoint.Length) * 5;
+            Price = 50.0 + distanceFactor;
+        }
 
-            // Глибоке копіювання композиції (створюємо новий маршрут на основі старого)
-            this.Route = new TripRoute(previousOrder.Route);
-            Console.WriteLine($"[Конструктор копії]: Переоформлено замовлення №{previousOrder.OrderId} як нове №{newId}");
+        // --- МЕТОД КЕРУВАННЯ ЗАМОВЛЕННЯМ ---
+        public bool ProcessOrder()
+        {
+            // Комплексна перевірка умов за допомогою предикатів інших класів
+            if (!Route.IsValidRoute())
+            {
+                Status = "Відхилено: Невалідний маршрут";
+                return false;
+            }
+            if (!CurrentPassenger.HasValidContactInfo())
+            {
+                Status = "Відхилено: Невірний телефон клієнта";
+                return false;
+            }
+            if (!AssignedDriver.IsReadyForOrder())
+            {
+                Status = "Відхилено: Водій зайнятий";
+                return false;
+            }
+            if (!CurrentPassenger.CanAffordRide(Price))
+            {
+                Status = "Відхилено: Недостатньо коштів";
+                return false;
+            }
+
+            // Якщо всі предикати повернули true — успішно оформлюємо
+            CurrentPassenger.DeductBalance(Price);
+            AssignedDriver.ToggleAvailability(false); // Водій стає зайнятим
+            Status = "Виконується";
+            return true;
+        }
+
+        // --- ПРЕДИКАТНА ФУНКЦІЯ ---
+        // Перевіряє, чи замовлення зараз знаходиться в активному стані поїздки
+        public bool IsActiveTrip()
+        {
+            return Status == "Виконується";
+        }
+
+        public void CompleteTrip()
+        {
+            if (Status == "Виконується")
+            {
+                Status = "Завершено";
+                AssignedDriver.ToggleAvailability(true); // Водій знову вільний
+            }
         }
     }
 }
