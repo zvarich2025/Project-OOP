@@ -1,13 +1,11 @@
 ﻿using System;
-using System.Collections.Generic; // Потрібно для Queue
+using System.Collections.Generic;
 
 namespace TaxiDispatcher
 {
     public class DispatcherSystem
     {
         public string Title { get; set; }
-
-        // ЗАДАЧА 3 ПРІОРИТЕТУ: Автоматична черга водіїв на стоянці
         private Queue<Driver> driverStandQueue;
 
         public DispatcherSystem(string title)
@@ -16,34 +14,32 @@ namespace TaxiDispatcher
             driverStandQueue = new Queue<Driver>();
         }
 
-        // Додавання водія в чергу
         public void AddDriverToStand(Driver driver)
         {
             driverStandQueue.Enqueue(driver);
-            Console.WriteLine($"[Стоянка]: Водій {driver.Name} заїхав на стоянку. В черзі: {driverStandQueue.Count} авто.");
+            Logger.Log($"[Стоянка]: Водій {driver.Name} заїхав на стоянку. В черзі: {driverStandQueue.Count} авто.");
         }
 
-        // Отримання першого вільного водія
         public Driver GetNextAvailableDriver()
         {
             if (driverStandQueue.Count > 0)
             {
                 Driver nextDriver = driverStandQueue.Dequeue();
-                Console.WriteLine($"[Стоянка]: Водій {nextDriver.Name} виїхав на замовлення. Залишилось: {driverStandQueue.Count}.");
+                Logger.Log($"[Стоянка]: Водій {nextDriver.Name} виїхав на замовлення. Залишилось в черзі: {driverStandQueue.Count}.");
                 return nextDriver;
             }
-            Console.WriteLine("[УВАГА]: Немає вільних водіїв на стоянці!");
+            Logger.Log("[УВАГА]: Немає вільних водіїв на стоянці!");
             return null;
         }
 
         public void DispatchLog(Order order)
         {
-            Console.WriteLine($"[Диспетчер {Title}]: Обробка замовлення №{order.OrderId}...");
+            Logger.Log($"[Диспетчер {Title}]: Обробка замовлення №{order.OrderId}...");
             if (order.CurrentPassenger.IsVip) order = order / 1.2;
 
-            bool success = order.ProcessOrder(); // Виклик методу інтерфейсу
-            if (success) Console.WriteLine($"[УСПІХ]: Замовлення схвалено! Статус: {order.Status}");
-            else Console.WriteLine($"[ВІДХИЛЕНО]: Недостатньо коштів.");
+            bool success = order.ProcessOrder();
+            if (success) Logger.Log($"[УСПІХ]: Замовлення схвалено! Статус: {order.Status}, Ціна: {Math.Round(order.Price, 2)} грн.");
+            else Logger.Log($"[ВІДХИЛЕНО]: Недостатньо коштів.");
         }
     }
 }
