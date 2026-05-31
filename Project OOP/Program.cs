@@ -6,61 +6,50 @@ namespace TaxiDispatcher
     {
         static void Main(string[] args)
         {
-            // Службова інформація
-            Console.WriteLine("ПІБ студента: Зварич Владислав Вячеславович");
-            Console.WriteLine("Курс: 1");
-            Console.WriteLine("Група: ІПЗ-12");
-            Console.WriteLine("Варіант завдання: 44 (Диспетчерська служба таксопарку)");
-            Console.WriteLine("Версія: 3 (Реалізація предикатних функцій та методів)");
-            Console.WriteLine("--------------------------------------------------\n");
+            Console.WriteLine("ПІБ студента: Іванов Іван Іванович");
+            Console.WriteLine("Курс: 2 | Група: ІП-41 | Варіант: 44");
+            Console.WriteLine("Версія 4 (Перевантаження операторів та задачі 2 пріоритету)\n");
 
-            Console.WriteLine("Старт імітації");
-            Console.WriteLine("==================================================");
+            DispatcherSystem dispatcher = new DispatcherSystem("SmartCity Taxi");
+            Passenger p1 = new Passenger("Олексій", "+380931112233", 100.0);
+            Driver d1 = new Driver("Микола", "Renault", "AA1111BB");
+            Driver d2 = new Driver("Микола Клон", "Daewoo", "AA1111BB"); // Той самий номер
 
-            // 1. Ініціалізація системи та сутностей
-            DispatcherSystem centralDispatcher = new DispatcherSystem("SmartCity Taxi");
+            // 1. Демонстрація перевантаження унарних та true/false для Пасажира
+            Console.WriteLine("--- ТЕСТ ОПЕРАТОРІВ ПАСАЖИРА ---");
+            Console.WriteLine($"Баланс до: {p1.Balance}");
+            p1 = p1 + 500.0; // Бінарний +
+            Console.WriteLine($"Баланс після (+ 500): {p1.Balance}");
 
-            Passenger passengerGood = new Passenger("Олексій Новіков", "+380931112233", 500.0);
-            Passenger passengerPoor = new Passenger("Бідний Студент", "+380507778899", 20.0); // Мало грошей
+            if (p1) Console.WriteLine("Оператор true: Пасажир має позитивний баланс.");
+            if (!p1) Console.WriteLine("Оператор !: Контакти пасажира НЕ валідні.");
+            else Console.WriteLine("Оператор !: Контакти пасажира валідні.");
 
-            Driver driverStandard = new Driver("Микола Грицай", "Renault Logan", "AA7711BB");
+            // 2. Демонстрація операторів Порівняння (==) для Водія
+            Console.WriteLine("\n--- ТЕСТ ОПЕРАТОРІВ ВОДІЯ ---");
+            if (d1 == d2) Console.WriteLine("Оператор ==: Це один і той самий водій (збігаються номери).");
 
-            // 2. Виклик предикатів для перевірки стану перед бізнес-процесом
-            Console.WriteLine("\n--- ПЕРЕВІРКА СТАНІВ ОБ'ЄКТІВ (ПРЕДИКАТИ) ---");
-            Console.WriteLine($"Чи валідні контакти пасажира 1? {passengerGood.HasValidContactInfo()}");
-            Console.WriteLine($"Чи готовий водій Микола до роботи? {driverStandard.IsReadyForOrder()}");
-            Console.WriteLine($"Чи вистачить грошей бідному пасажиру на поїздку за 150 грн? {passengerPoor.CanAffordRide(150.0)}");
-            Console.WriteLine("--------------------------------------------------");
+            // 3. Задачі 2 пріоритету (VIP та Облік)
+            Console.WriteLine("\n--- ТЕСТ ЗАДАЧ 2 ПРІОРИТЕТУ ТА ЗАМОВЛЕНЬ ---");
+            dispatcher.MakeVip(p1); // Другий пріоритет: VIP статус
 
-            // 3. СЦЕНАРІЙ №1: Спроба замовлення з недостатнім балансом
-            Console.WriteLine("\n[СЦЕНАРІЙ 1]: Замовлення від пасажира з малим балансом");
-            Order orderFail = new Order(1, passengerPoor, driverStandard, "вул. Політехнічна", "вул. Хрещатик");
+            Order order1 = new Order(1, p1, d1, "Вокзал", "Центр");
+            Order order2 = new Order(2, p1, d1, "Вокзал", "Далеке передмістя");
 
-            centralDispatcher.DispatchLog(orderFail);
-            Console.WriteLine($"Поточний статус замовлення №1 в системі: {orderFail.Status}");
-            Console.WriteLine($"Предикат активності поїздки: {orderFail.IsActiveTrip()}");
+            // Порівняння замовлень (<, >)
+            if (order2 > order1) Console.WriteLine($"Оператор >: Замовлення №2 дорожче за №1 ({order2.Price} > {order1.Price})");
 
-            // 4. СЦЕНАРІЙ №2: Успішне замовлення
-            Console.WriteLine("\n[СЦЕНАРІЙ 2]: Замовлення від платоспроможного пасажира");
-            Order orderSuccess = new Order(2, passengerGood, driverStandard, "вул. Політехнічна", "Аеропорт");
+            // 4. Демонстрація життєвого циклу з перевантаженнями (*, ++, +d, -d)
+            Console.WriteLine("\nПочинається дощ, збільшуємо ціну в 1.5 рази (Оператор *)...");
+            order1 = order1 * 1.5;
 
-            // Перевіримо предикат валідності створеного маршруту всередині замовлення
-            Console.WriteLine($"Внутрішній предикат: чи коректний маршрут замовлення? {orderSuccess.Route.IsValidRoute()}");
+            dispatcher.DispatchLog(order1);
 
-            // Диспетчер обробляє замовлення
-            centralDispatcher.DispatchLog(orderSuccess);
-            Console.WriteLine($"Предикат активності поїздки тепер: {orderSuccess.IsActiveTrip()}");
-            Console.WriteLine($"Залишок балансу пасажира: {passengerGood.Balance} грн.");
-            Console.WriteLine($"Чи вільний водій Микола тепер? {driverStandard.IsAvailable}");
+            Console.WriteLine($"Статус водія після прийняття (працював унарний -d): Вільний = {d1.IsAvailable}");
 
-            // 5. Завершення успішної поїздки
-            Console.WriteLine("\n--- ЗАВЕРШЕННЯ ПОЇЗДКИ ---");
-            orderSuccess.CompleteTrip();
-            Console.WriteLine($"Статус замовлення №2 після фінішу: {orderSuccess.Status}");
-            Console.WriteLine($"Чи вільний водій Микола знову? {driverStandard.IsAvailable}");
-
-            Console.WriteLine("==================================================");
-            Console.WriteLine("Фініш імітації");
+            order1.CompleteTrip();
+            Console.WriteLine($"Поїздку завершено. Кількість поїздок водія (Оператор ++): {d1.CompletedTrips}");
+            Console.WriteLine($"Статус водія (працював унарний +d): Вільний = {d1.IsAvailable}");
 
             Console.ReadLine();
         }
