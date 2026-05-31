@@ -8,11 +8,7 @@ namespace TaxiDispatcher
 {
     public static class Logger
     {
-        // ЗМІНЕНО: Тепер використовуємо Dictionary (Словник) замість List
-        // Ключ (int) - це номер повідомлення, Значення (LogEntry) - це час і текст
         private static Dictionary<int, LogEntry> logDictionary = new Dictionary<int, LogEntry>();
-
-        // Лічильник для створення унікальних ключів словника
         private static int stepCounter = 1;
 
         public class LogEntry
@@ -24,29 +20,23 @@ namespace TaxiDispatcher
         public static void Log(string message)
         {
             Console.WriteLine(message);
-
-            // Додаємо запис у словник з унікальним номером кроку
             logDictionary.Add(stepCounter, new LogEntry
             {
                 Time = DateTime.Now.ToString("HH:mm:ss"),
                 Message = message
             });
-
-            stepCounter++; // Збільшуємо номер для наступного запису
+            stepCounter++;
         }
 
-        public static void SaveToJson(string fileName = "simulation_dictionary.json")
+        public static void SaveToJson(string fileName = "simulation_interactive.json")
         {
             var options = new JsonSerializerOptions
             {
                 WriteIndented = true,
                 Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
             };
-
-            // Серіалізуємо саме словник
             string jsonString = JsonSerializer.Serialize(logDictionary, options);
             File.WriteAllText(fileName, jsonString);
-
             Console.WriteLine($"\n==================================================");
             Console.WriteLine($"[Система]: Словник логів збережено у файл: {Path.GetFullPath(fileName)}");
         }
