@@ -7,38 +7,29 @@ namespace TaxiDispatcher
 {
     public static class LocalizationManager
     {
-        // Словник для зберігання перекладів (Ключ -> Значення)
         private static Dictionary<string, string> _translations = new Dictionary<string, string>();
 
-        // Метод завантаження мовного файлу
         public static void LoadLanguage(string languageCode)
         {
             string filePath = $"{languageCode}.json";
-
-            if (File.Exists(filePath))
+            try
             {
-                // Зчитуємо весь текст з файлу
                 string jsonString = File.ReadAllText(filePath);
-
-                // Перетворюємо текст на словник
                 _translations = JsonSerializer.Deserialize<Dictionary<string, string>>(jsonString);
             }
-            else
+            catch (FileNotFoundException ex)
             {
-                Console.WriteLine($"[Системна помилка]: Файл локалізації {filePath} не знайдено.");
+                Console.WriteLine($"[КРИТИЧНО]: Файл локалізації '{filePath}' не знайдено! {ex.Message}");
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"[ПОМИЛКА]: Невідома помилка локалізації: {ex.Message}");
             }
         }
 
-        // Метод для отримання тексту за ключем
         public static string GetString(string key)
         {
-            // Якщо такий ключ є в словнику - повертаємо його текст
-            if (_translations.ContainsKey(key))
-            {
-                return _translations[key];
-            }
-
-            // Якщо ключа немає (наприклад, зробили помилку в назві), повертаємо сам ключ, щоб це було помітно
+            if (_translations.ContainsKey(key)) return _translations[key];
             return $"[{key}]";
         }
     }
