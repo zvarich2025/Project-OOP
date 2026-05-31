@@ -10,8 +10,8 @@ namespace TaxiDispatcher
             // Вмикаємо UTF-8 для коректного відображення української мови!
             Console.OutputEncoding = Encoding.UTF8;
 
-            Console.WriteLine("ПІБ студента: Іванов Іван Іванович");
-            Console.WriteLine("Курс: 2 | Група: ІП-41 | Варіант: 44");
+            Console.WriteLine("ПІБ студента: Зварич Владислав Вячеславович");
+            Console.WriteLine("Курс: 1 | Група: ІПЗ-12 | Варіант: 44");
             Console.WriteLine("Версія 5 (Успадкування, Абстрактні класи, Інтерфейси)\n");
 
             // Тест абстрактного класу Person (Створення нащадків)
