@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Text;
 
 namespace TaxiDispatcher
 {
@@ -6,51 +7,46 @@ namespace TaxiDispatcher
     {
         static void Main(string[] args)
         {
+            // Вмикаємо UTF-8 для коректного відображення української мови!
+            Console.OutputEncoding = Encoding.UTF8;
+
             Console.WriteLine("ПІБ студента: Іванов Іван Іванович");
             Console.WriteLine("Курс: 2 | Група: ІП-41 | Варіант: 44");
-            Console.WriteLine("Версія 4 (Перевантаження операторів та задачі 2 пріоритету)\n");
+            Console.WriteLine("Версія 5 (Успадкування, Абстрактні класи, Інтерфейси)\n");
 
+            // Тест абстрактного класу Person (Створення нащадків)
+            Passenger p1 = new Passenger("Олексій", "+380931112233", 500.0);
+            Driver d1 = new Driver("Микола", "+380501234567", "Renault", "AA1111BB");
+            Driver d2 = new Driver("Степан", "+380671234567", "Skoda", "BC2222CC");
+
+            Console.WriteLine("--- ПЕРЕВІРКА ПОЛІМОРФІЗМУ (Абстрактний метод PrintRole) ---");
+            // Можемо покласти їх в масив базового типу Person
+            Person[] users = { p1, d1, d2 };
+            foreach (var user in users)
+            {
+                user.PrintRole();
+            }
+
+            Console.WriteLine("\n--- ЗАДАЧА 3 ПРІОРИТЕТУ: Автоматична черга на стоянці ---");
             DispatcherSystem dispatcher = new DispatcherSystem("SmartCity Taxi");
-            Passenger p1 = new Passenger("Олексій", "+380931112233", 100.0);
-            Driver d1 = new Driver("Микола", "Renault", "AA1111BB");
-            Driver d2 = new Driver("Микола Клон", "Daewoo", "AA1111BB"); // Той самий номер
 
-            // 1. Демонстрація перевантаження унарних та true/false для Пасажира
-            Console.WriteLine("--- ТЕСТ ОПЕРАТОРІВ ПАСАЖИРА ---");
-            Console.WriteLine($"Баланс до: {p1.Balance}");
-            p1 = p1 + 500.0; // Бінарний +
-            Console.WriteLine($"Баланс після (+ 500): {p1.Balance}");
+            // Водії приїжджають на базу
+            dispatcher.AddDriverToStand(d1);
+            dispatcher.AddDriverToStand(d2);
 
-            if (p1) Console.WriteLine("Оператор true: Пасажир має позитивний баланс.");
-            if (!p1) Console.WriteLine("Оператор !: Контакти пасажира НЕ валідні.");
-            else Console.WriteLine("Оператор !: Контакти пасажира валідні.");
+            // Клієнт замовляє таксі, беремо першого з черги
+            Driver assignedDriver = dispatcher.GetNextAvailableDriver();
 
-            // 2. Демонстрація операторів Порівняння (==) для Водія
-            Console.WriteLine("\n--- ТЕСТ ОПЕРАТОРІВ ВОДІЯ ---");
-            if (d1 == d2) Console.WriteLine("Оператор ==: Це один і той самий водій (збігаються номери).");
+            if (assignedDriver != null)
+            {
+                // Використовуємо інтерфейс ITripManager
+                ITripManager order1 = new Order(1, p1, assignedDriver, "Вокзал", "Хрещатик");
 
-            // 3. Задачі 2 пріоритету (VIP та Облік)
-            Console.WriteLine("\n--- ТЕСТ ЗАДАЧ 2 ПРІОРИТЕТУ ТА ЗАМОВЛЕНЬ ---");
-            dispatcher.MakeVip(p1); // Другий пріоритет: VIP статус
+                dispatcher.DispatchLog((Order)order1);
+                order1.CompleteTrip();
+            }
 
-            Order order1 = new Order(1, p1, d1, "Вокзал", "Центр");
-            Order order2 = new Order(2, p1, d1, "Вокзал", "Далеке передмістя");
-
-            // Порівняння замовлень (<, >)
-            if (order2 > order1) Console.WriteLine($"Оператор >: Замовлення №2 дорожче за №1 ({order2.Price} > {order1.Price})");
-
-            // 4. Демонстрація життєвого циклу з перевантаженнями (*, ++, +d, -d)
-            Console.WriteLine("\nПочинається дощ, збільшуємо ціну в 1.5 рази (Оператор *)...");
-            order1 = order1 * 1.5;
-
-            dispatcher.DispatchLog(order1);
-
-            Console.WriteLine($"Статус водія після прийняття (працював унарний -d): Вільний = {d1.IsAvailable}");
-
-            order1.CompleteTrip();
-            Console.WriteLine($"Поїздку завершено. Кількість поїздок водія (Оператор ++): {d1.CompletedTrips}");
-            Console.WriteLine($"Статус водія (працював унарний +d): Вільний = {d1.IsAvailable}");
-
+            Console.WriteLine("\n[Система]: Роботу завершено. Натисніть Enter для виходу.");
             Console.ReadLine();
         }
     }

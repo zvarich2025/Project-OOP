@@ -2,22 +2,27 @@
 
 namespace TaxiDispatcher
 {
-    // ПОМИЛКА: Аналогічно забули base()
     public class Driver : Person
     {
         public string CarModel { get; set; }
+        public string LicensePlate { get; }
         public bool IsAvailable { get; set; }
+        public int CompletedTrips { get; set; }
 
-        public Driver(string name, string phoneNumber, string carModel)
+        // ВИПРАВЛЕНО: Правильний виклик базового конструктора
+        public Driver(string name, string phoneNumber, string carModel, string licensePlate) : base(name, phoneNumber)
         {
-            Name = name;
-            PhoneNumber = phoneNumber;
             CarModel = carModel;
+            LicensePlate = licensePlate;
+            IsAvailable = true;
+            CompletedTrips = 0;
         }
 
-        public override void PrintRole()
-        {
-            Console.WriteLine("Я - Водій");
-        }
+        public override void PrintRole() => Console.WriteLine($"[Роль]: Водій {Name} на {CarModel}");
+
+        public bool IsReadyForOrder() => IsAvailable;
+        public static Driver operator ++(Driver d) { d.CompletedTrips++; return d; }
+        public static Driver operator -(Driver d) { d.IsAvailable = false; return d; }
+        public static Driver operator +(Driver d) { d.IsAvailable = true; return d; }
     }
 }

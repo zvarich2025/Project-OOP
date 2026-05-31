@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic; // Потрібно для Queue
 
 namespace TaxiDispatcher
 {
@@ -6,29 +7,43 @@ namespace TaxiDispatcher
     {
         public string Title { get; set; }
 
-        public DispatcherSystem(string title) { Title = title; }
+        // ЗАДАЧА 3 ПРІОРИТЕТУ: Автоматична черга водіїв на стоянці
+        private Queue<Driver> driverStandQueue;
 
-        // ЗАДАЧА 2 ПРІОРИТЕТУ: Робота з VIP клієнтами
-        public void MakeVip(Passenger passenger)
+        public DispatcherSystem(string title)
         {
-            passenger.IsVip = true;
-            Console.WriteLine($"[Диспетчерська]: Пасажир {passenger.Name} отримав статус VIP!");
+            Title = title;
+            driverStandQueue = new Queue<Driver>();
+        }
+
+        // Додавання водія в чергу
+        public void AddDriverToStand(Driver driver)
+        {
+            driverStandQueue.Enqueue(driver);
+            Console.WriteLine($"[Стоянка]: Водій {driver.Name} заїхав на стоянку. В черзі: {driverStandQueue.Count} авто.");
+        }
+
+        // Отримання першого вільного водія
+        public Driver GetNextAvailableDriver()
+        {
+            if (driverStandQueue.Count > 0)
+            {
+                Driver nextDriver = driverStandQueue.Dequeue();
+                Console.WriteLine($"[Стоянка]: Водій {nextDriver.Name} виїхав на замовлення. Залишилось: {driverStandQueue.Count}.");
+                return nextDriver;
+            }
+            Console.WriteLine("[УВАГА]: Немає вільних водіїв на стоянці!");
+            return null;
         }
 
         public void DispatchLog(Order order)
         {
             Console.WriteLine($"[Диспетчер {Title}]: Обробка замовлення №{order.OrderId}...");
+            if (order.CurrentPassenger.IsVip) order = order / 1.2;
 
-            // Якщо клієнт VIP - робимо знижку 20% (використовуємо перевантажений оператор /)
-            if (order.CurrentPassenger.IsVip)
-            {
-                order = order / 1.2;
-                Console.WriteLine($"Застосовано VIP знижку! Нова ціна: {Math.Round(order.Price, 2)} грн.");
-            }
-
-            bool success = order.ProcessOrder();
+            bool success = order.ProcessOrder(); // Виклик методу інтерфейсу
             if (success) Console.WriteLine($"[УСПІХ]: Замовлення схвалено! Статус: {order.Status}");
-            else Console.WriteLine($"[ВІДХИЛЕНО]: Не вдалося виконати.");
+            else Console.WriteLine($"[ВІДХИЛЕНО]: Недостатньо коштів.");
         }
     }
 }
