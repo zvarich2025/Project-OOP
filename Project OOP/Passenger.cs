@@ -4,60 +4,49 @@ namespace TaxiDispatcher
 {
     public class Passenger
     {
-        private static int passengerCount;
+        private static int passengerCount = 0;
         public string Name { get; set; }
         public string PhoneNumber { get; set; }
-        public double Balance { get; set; } // Додано поле балансу для бізнес-сценарію
+        public double Balance { get; set; }
+        public bool IsVip { get; set; } // Задача 2 пріоритету (VIP пасажири)
 
-        static Passenger()
-        {
-            passengerCount = 0;
-        }
-
-        public Passenger() : this("Анонім", "+380000000000", 0.0) { }
-
-        public Passenger(string name, string phoneNumber) : this(name, phoneNumber, 200.0) { }
-
-        // Розширений конструктор
         public Passenger(string name, string phoneNumber, double initialBalance)
         {
             Name = name;
             PhoneNumber = phoneNumber;
             Balance = initialBalance;
+            IsVip = false;
             passengerCount++;
         }
 
-        public Passenger(Passenger other)
+        public bool HasValidContactInfo() => !string.IsNullOrEmpty(PhoneNumber) && PhoneNumber.StartsWith("+380") && PhoneNumber.Length == 13;
+        public bool CanAffordRide(double cost) => Balance >= cost;
+        public void DeductBalance(double amount) { if (amount > 0 && Balance >= amount) Balance -= amount; }
+
+        // --- ПЕРЕВАНТАЖЕННЯ ОПЕРАТОРІВ ---
+
+        // 1. Бінарні + та - (Поповнення та зняття коштів з балансу)
+        public static Passenger operator +(Passenger p, double amount)
         {
-            this.Name = other.Name;
-            this.PhoneNumber = other.PhoneNumber;
-            this.Balance = other.Balance;
-            passengerCount++;
+            p.Balance += amount;
+            return p;
         }
 
-        public static int TotalPassengers => passengerCount;
-
-        // --- ПРЕДИКАТНА ФУНКЦІЯ ---
-        // Перевіряє, чи правильно заповнений номер телефону (спрощена валідація на довжину)
-        public bool HasValidContactInfo()
+        public static Passenger operator -(Passenger p, double amount)
         {
-            return !string.IsNullOrEmpty(PhoneNumber) && PhoneNumber.StartsWith("+380") && PhoneNumber.Length == 13;
+            p.Balance -= amount;
+            if (p.Balance < 0) p.Balance = 0;
+            return p;
         }
 
-        // --- ПРЕДИКАТНА ФУНКЦІЯ ---
-        // Перевіряє, чи достатньо у пасажира коштів для поїздки
-        public bool CanAffordRide(double cost)
+        // 2. Унарний ! (Перевірка, чи заблокований/невалідний клієнт)
+        public static bool operator !(Passenger p)
         {
-            return Balance >= cost;
+            return !p.HasValidContactInfo();
         }
 
-        // Метод зміни стану
-        public void DeductBalance(double amount)
-        {
-            if (amount > 0 && Balance >= amount)
-            {
-                Balance -= amount;
-            }
-        }
+        // 3. Оператори true / false (Чи платоспроможний клієнт загалом)
+        public static bool operator true(Passenger p) => p.Balance > 0;
+        public static bool operator false(Passenger p) => p.Balance <= 0;
     }
 }
