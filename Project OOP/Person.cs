@@ -13,6 +13,7 @@ namespace TaxiDispatcher
             PhoneNumber = phoneNumber;
         }
 
+        // Цей рядок обов'язковий!
         public abstract void PrintRole();
     }
 }

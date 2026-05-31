@@ -17,7 +17,6 @@ namespace TaxiDispatcher
             CompletedTrips = 0;
         }
 
-        // Використовуємо Logger
         public override void PrintRole() => Logger.Log($"[Роль]: Водій {Name} на {CarModel}");
 
         public bool IsReadyForOrder() => IsAvailable;

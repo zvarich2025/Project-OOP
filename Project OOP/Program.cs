@@ -7,41 +7,36 @@ namespace TaxiDispatcher
     {
         static void Main(string[] args)
         {
+            // Вмикаємо UTF-8 для коректного відображення української мови
             Console.OutputEncoding = Encoding.UTF8;
 
-            Logger.Log("ПІБ студента: Зварич Владислав В'ячеславович");
-            Logger.Log("Навчальний заклад: КНУ ім. Тараса Шевченка | Група: ІПЗ-12");
-            Logger.Log("Варіант: 44 | Версія 5 (Абстракції + Вивід у JSON)\n");
+            // 1. ЗАВАНТАЖУЄМО МОВУ З ФАЙЛУ uk.json
+            LocalizationManager.LoadLanguage("uk");
+
+            // 2. БЕРЕМО ТЕКСТИ ЗІ СЛОВНИКА І ВІДПРАВЛЯЄМО В LOGGER
+            // Зверніть увагу: тепер тут Logger.Log замість Console.WriteLine
+            Logger.Log(LocalizationManager.GetString("StudentInfo"));
+            Logger.Log(LocalizationManager.GetString("LabHeader"));
+            Logger.Log("==================================================\n");
+
+            Logger.Log(LocalizationManager.GetString("SimulationStart"));
 
             Passenger p1 = new Passenger("Олексій", "+380931112233", 500.0);
             Driver d1 = new Driver("Микола", "+380501234567", "Renault", "AA1111BB");
-            Driver d2 = new Driver("Степан", "+380671234567", "Skoda", "BC2222CC");
 
-            Logger.Log("--- ПЕРЕВІРКА ПОЛІМОРФІЗМУ ---");
-            Person[] users = { p1, d1, d2 };
+            Person[] users = { p1, d1 };
             foreach (var user in users)
             {
+                // PrintRole всередині вже використовує Logger.Log, тому тут все добре
                 user.PrintRole();
             }
 
-            Logger.Log("\n--- АВТОМАТИЧНА ЧЕРГА НА СТОЯНЦІ ---");
-            DispatcherSystem dispatcher = new DispatcherSystem("SmartCity Taxi");
+            // ... (тут логіка створення замовлень, якщо потрібно) ...
 
-            dispatcher.AddDriverToStand(d1);
-            dispatcher.AddDriverToStand(d2);
+            Logger.Log("\n" + LocalizationManager.GetString("SimulationFinish"));
 
-            Driver assignedDriver = dispatcher.GetNextAvailableDriver();
-
-            if (assignedDriver != null)
-            {
-                ITripManager order1 = new Order(1, p1, assignedDriver, "Вокзал", "Хрещатик");
-
-                dispatcher.DispatchLog((Order)order1);
-                order1.CompleteTrip();
-            }
-
-            // ФІНАЛЬНИЙ АКОРД: Зберігаємо всю історію в JSON
-            Logger.SaveToJson("simulation_result.json");
+            // 3. ОБОВ'ЯЗКОВО ЗБЕРІГАЄМО ЛОГ У JSON ФАЙЛ ПЕРЕД ВИХОДОМ
+            Logger.SaveToJson("simulation_dictionary.json");
 
             Console.ReadLine();
         }
