@@ -7,14 +7,14 @@ namespace TaxiDispatcher
         public double Balance { get; set; }
         public bool IsVip { get; set; }
 
-        // ВИПРАВЛЕНО: Правильний виклик базового конструктора
         public Passenger(string name, string phoneNumber, double initialBalance) : base(name, phoneNumber)
         {
             Balance = initialBalance;
             IsVip = false;
         }
 
-        public override void PrintRole() => Console.WriteLine($"[Роль]: Пасажир {Name} (VIP: {IsVip})");
+        // Використовуємо Logger
+        public override void PrintRole() => Logger.Log($"[Роль]: Пасажир {Name} (VIP: {IsVip})");
 
         public bool HasValidContactInfo() => !string.IsNullOrEmpty(PhoneNumber);
         public bool CanAffordRide(double cost) => Balance >= cost;
