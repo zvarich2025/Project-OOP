@@ -8,38 +8,47 @@ namespace TaxiDispatcher
 {
     public static class Logger
     {
-        // Список для зберігання всіх повідомлень
-        private static List<LogEntry> logEntries = new List<LogEntry>();
+        // ЗМІНЕНО: Тепер використовуємо Dictionary (Словник) замість List
+        // Ключ (int) - це номер повідомлення, Значення (LogEntry) - це час і текст
+        private static Dictionary<int, LogEntry> logDictionary = new Dictionary<int, LogEntry>();
 
-        // Структура одного запису в лозі JSON
+        // Лічильник для створення унікальних ключів словника
+        private static int stepCounter = 1;
+
         public class LogEntry
         {
             public string Time { get; set; }
             public string Message { get; set; }
         }
 
-        // Заміна стандартного Console.WriteLine
         public static void Log(string message)
         {
-            Console.WriteLine(message); // Виводимо текст у консоль
-            logEntries.Add(new LogEntry { Time = DateTime.Now.ToString("HH:mm:ss"), Message = message }); // Зберігаємо для JSON
+            Console.WriteLine(message);
+
+            // Додаємо запис у словник з унікальним номером кроку
+            logDictionary.Add(stepCounter, new LogEntry
+            {
+                Time = DateTime.Now.ToString("HH:mm:ss"),
+                Message = message
+            });
+
+            stepCounter++; // Збільшуємо номер для наступного запису
         }
 
-        // Збереження у файл
-        public static void SaveToJson(string fileName = "simulation_result.json")
+        public static void SaveToJson(string fileName = "simulation_dictionary.json")
         {
             var options = new JsonSerializerOptions
             {
-                WriteIndented = true, // Робить JSON красивим (з відступами)
-                Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping // Зберігає українські літери нормальними, а не кодами
+                WriteIndented = true,
+                Encoder = JavaScriptEncoder.UnsafeRelaxedJsonEscaping
             };
 
-            string jsonString = JsonSerializer.Serialize(logEntries, options);
+            // Серіалізуємо саме словник
+            string jsonString = JsonSerializer.Serialize(logDictionary, options);
             File.WriteAllText(fileName, jsonString);
 
-            // Це повідомлення виводимо тільки в консоль
             Console.WriteLine($"\n==================================================");
-            Console.WriteLine($"[Система]: Весь протокол успішно збережено у файл: {Path.GetFullPath(fileName)}");
+            Console.WriteLine($"[Система]: Словник логів збережено у файл: {Path.GetFullPath(fileName)}");
         }
     }
 }
