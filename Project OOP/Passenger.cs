@@ -13,7 +13,6 @@ namespace TaxiDispatcher
             IsVip = false;
         }
 
-        // Використовуємо Logger
         public override void PrintRole() => Logger.Log($"[Роль]: Пасажир {Name} (VIP: {IsVip})");
 
         public bool HasValidContactInfo() => !string.IsNullOrEmpty(PhoneNumber);
