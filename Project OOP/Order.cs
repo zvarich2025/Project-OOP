@@ -11,14 +11,6 @@ namespace TaxiDispatcher
         public double Price { get; private set; }
         public string Status { get; private set; }
 
-        public Order()
-        {
-            OrderId = 0;
-            Price = 0.0;
-            Route = new TripRoute();
-            Status = "Нове";
-        }
-
         public Order(int orderId, Passenger passenger, Driver driver, string start, string end)
         {
             OrderId = orderId;
@@ -26,54 +18,27 @@ namespace TaxiDispatcher
             AssignedDriver = driver;
             Route = new TripRoute(start, end);
             Status = "Нове";
-            CalculateOrderPrice(); // Автоматичний розрахунок при створенні
+            CalculateOrderPrice();
         }
 
-        // --- МЕТОД РОЗРАХУНКУ ВАРТОСТІ ---
         private void CalculateOrderPrice()
         {
-            // Імітація розрахунку: базова ставка 50 грн + довжина назв вулиць як сурогат відстані
             double distanceFactor = (Route.StartPoint.Length + Route.EndPoint.Length) * 5;
             Price = 50.0 + distanceFactor;
         }
 
-        // --- МЕТОД КЕРУВАННЯ ЗАМОВЛЕННЯМ ---
         public bool ProcessOrder()
         {
-            // Комплексна перевірка умов за допомогою предикатів інших класів
-            if (!Route.IsValidRoute())
+            if (!Route.IsValidRoute() || !CurrentPassenger.HasValidContactInfo() || !AssignedDriver.IsReadyForOrder() || !CurrentPassenger.CanAffordRide(Price))
             {
-                Status = "Відхилено: Невалідний маршрут";
-                return false;
-            }
-            if (!CurrentPassenger.HasValidContactInfo())
-            {
-                Status = "Відхилено: Невірний телефон клієнта";
-                return false;
-            }
-            if (!AssignedDriver.IsReadyForOrder())
-            {
-                Status = "Відхилено: Водій зайнятий";
-                return false;
-            }
-            if (!CurrentPassenger.CanAffordRide(Price))
-            {
-                Status = "Відхилено: Недостатньо коштів";
+                Status = "Відхилено";
                 return false;
             }
 
-            // Якщо всі предикати повернули true — успішно оформлюємо
             CurrentPassenger.DeductBalance(Price);
-            AssignedDriver.ToggleAvailability(false); // Водій стає зайнятим
+            AssignedDriver = -AssignedDriver; // Використовуємо унарний мінус (робимо зайнятим)
             Status = "Виконується";
             return true;
-        }
-
-        // --- ПРЕДИКАТНА ФУНКЦІЯ ---
-        // Перевіряє, чи замовлення зараз знаходиться в активному стані поїздки
-        public bool IsActiveTrip()
-        {
-            return Status == "Виконується";
         }
 
         public void CompleteTrip()
@@ -81,8 +46,30 @@ namespace TaxiDispatcher
             if (Status == "Виконується")
             {
                 Status = "Завершено";
-                AssignedDriver.ToggleAvailability(true); // Водій знову вільний
+                AssignedDriver = +AssignedDriver; // Використовуємо унарний плюс (знову вільний)
+                AssignedDriver++; // Збільшуємо лічильник поїздок через перевантажений ++
             }
         }
+
+        // --- ПЕРЕВАНТАЖЕННЯ ОПЕРАТОРІВ ---
+
+        // 1. Бінарні * та / (Застосування коефіцієнтів, наприклад, "гарячий час" або знижка)
+        public static Order operator *(Order o, double multiplier)
+        {
+            o.Price *= multiplier;
+            return o;
+        }
+
+        public static Order operator /(Order o, double divider)
+        {
+            if (divider != 0) o.Price /= divider;
+            return o;
+        }
+
+        // 2. Оператори порівняння (Порівняння замовлень за вартістю)
+        public static bool operator >(Order o1, Order o2) => o1.Price > o2.Price;
+        public static bool operator <(Order o1, Order o2) => o1.Price < o2.Price;
+        public static bool operator >=(Order o1, Order o2) => o1.Price >= o2.Price;
+        public static bool operator <=(Order o1, Order o2) => o1.Price <= o2.Price;
     }
 }
