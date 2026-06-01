@@ -28,7 +28,21 @@ namespace TaxiDispatcher
             stepCounter++;
         }
 
-        public static void SaveToJson(string fileName = "simulation_interactive.json")
+        // --- НОВИЙ МЕТОД: ЗАПИС КЛІЄНТА У TXT ФАЙЛ ---
+        public static void SaveClientToTxt(Passenger passenger)
+        {
+            string fileName = "clients_database.txt";
+
+            // Формуємо рядок, який буде записано у файл
+            string record = $"[{DateTime.Now:dd.MM.yyyy HH:mm}] Ім'я: {passenger.Name} | Телефон: {passenger.PhoneNumber}\n";
+
+            // AppendAllText дописує текст у кінець файлу (або створює його, якщо файлу немає)
+            File.AppendAllText(fileName, record);
+
+            Console.WriteLine($"[База даних]: Дані клієнта '{passenger.Name}' збережено у файл {fileName}");
+        }
+
+        public static void SaveToJson(string fileName = "simulation_live.json")
         {
             var options = new JsonSerializerOptions
             {

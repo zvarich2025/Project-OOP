@@ -1,5 +1,5 @@
 ﻿using System;
-using System.Linq; // Додано для зручної перевірки букв та цифр
+using System.Linq;
 using System.Text;
 
 namespace TaxiDispatcher
@@ -15,7 +15,7 @@ namespace TaxiDispatcher
             CityDatabase.UpdateFromInternet();
 
             Logger.Log(LocalizationManager.GetString("StudentInfo"));
-            Logger.Log("Версія 7.1 (Валідація вводу: захист від неправильних даних)\n");
+            Logger.Log("Версія 7.2 (База клієнтів TXT, Валідація, Чорні списки)\n");
             Logger.Log(LocalizationManager.GetString("SimulationStart") + "\n");
 
             DispatcherSystem dispatcher = new DispatcherSystem("АТП SmartCity");
@@ -23,57 +23,50 @@ namespace TaxiDispatcher
             dispatcher.AddDispatcher(new DispatcherEmployee("Олег", "102", DispatcherRole.FleetManager));
 
             Logger.Log("\n[Система]: Формування автопарку на зміну...");
-
-            // Економ
             dispatcher.AddDriverToStand(new Driver("Микола (Порушник)", "050111", "Skoda Octavia", "AA1111BB", TaxiClass.Economy));
             dispatcher.AddDriverToStand(new Driver("Василь", "050222", "Renault Logan", "BC2222CC", TaxiClass.Economy));
-
-            // Комфорт
             dispatcher.AddDriverToStand(new Driver("Олена", "050333", "Toyota Camry", "KA3333XX", TaxiClass.Comfort));
             dispatcher.AddDriverToStand(new Driver("Дмитро", "050444", "Volkswagen Passat", "AX4444YY", TaxiClass.Comfort));
-
-            // VIP
             dispatcher.AddDriverToStand(new Driver("Степан", "050555", "Mercedes-Maybach S-Class", "VIP001", TaxiClass.VIP));
             dispatcher.AddDriverToStand(new Driver("Артем", "050666", "Porsche Panamera", "VIP002", TaxiClass.VIP));
-
             Console.WriteLine("\n------------------------------------------------");
 
-            // --- 1. ВАЛІДАЦІЯ ІМЕНІ (Лише літери) ---
+            // --- 1. ВАЛІДАЦІЯ ІМЕНІ ---
             string passName = "";
             while (true)
             {
                 Console.Write(LocalizationManager.GetString("PromptName"));
                 passName = Console.ReadLine()?.Trim();
 
-                // Перевіряємо, чи рядок не порожній і чи складається ТІЛЬКИ з літер, пробілів, апострофів або дефісів
                 if (!string.IsNullOrEmpty(passName) && passName.All(c => char.IsLetter(c) || c == ' ' || c == '\'' || c == '-'))
-                {
-                    break; // Виходимо з циклу, якщо все правильно
-                }
+                    break;
+
                 Console.WriteLine("[Помилка]: Ім'я має містити ЛИШЕ літери. Спробуйте ще раз.\n");
             }
 
-            // --- 2. ВАЛІДАЦІЯ ТЕЛЕФОНУ (Лише цифри) ---
+            // --- 2. ВАЛІДАЦІЯ ТЕЛЕФОНУ ---
             string passPhone = "";
             while (true)
             {
                 Console.Write(LocalizationManager.GetString("PromptPhone"));
                 passPhone = Console.ReadLine()?.Trim();
 
-                // Дозволяємо '+' на початку, інше - тільки цифри
                 string digitsToCheck = passPhone.StartsWith("+") ? passPhone.Substring(1) : passPhone;
 
                 if (!string.IsNullOrEmpty(digitsToCheck) && digitsToCheck.All(char.IsDigit) && passPhone.Length >= 10)
-                {
-                    break; // Виходимо з циклу
-                }
+                    break;
+
                 Console.WriteLine("[Помилка]: Номер телефону має містити ЛИШЕ цифри (мінімум 10 символів). Спробуйте ще раз.\n");
             }
 
             Passenger currentPassenger = new Passenger(passName, passPhone, 1500.0);
-            Logger.Log($"\n[Система]: Зареєстровано пасажира {currentPassenger.Name}. Баланс: 1500 грн.\n");
+            Logger.Log($"\n[Система]: Зареєстровано пасажира {currentPassenger.Name}. Баланс: 1500 грн.");
 
-            // --- 3. ВАЛІДАЦІЯ МАРШРУТУ (Не можуть співпадати) ---
+            // --- НОВЕ: ЗАПИСУЄМО КЛІЄНТА У TXT ФАЙЛ ---
+            Logger.SaveClientToTxt(currentPassenger);
+            Console.WriteLine();
+
+            // --- 3. ВАЛІДАЦІЯ МАРШРУТУ ---
             string startRoute = "";
             while (true)
             {
@@ -90,18 +83,11 @@ namespace TaxiDispatcher
                 endRoute = Console.ReadLine()?.Trim();
 
                 if (string.IsNullOrEmpty(endRoute))
-                {
                     Console.WriteLine("[Помилка]: Адреса призначення не може бути порожньою.\n");
-                }
-                // Перевіряємо, чи не ввів користувач те саме (ігноруючи великі/малі літери)
                 else if (startRoute.Equals(endRoute, StringComparison.OrdinalIgnoreCase))
-                {
                     Console.WriteLine("[Помилка]: Місце відправлення та призначення НЕ МОЖУТЬ співпадати! Введіть іншу адресу.\n");
-                }
                 else
-                {
-                    break; // Все ідеально
-                }
+                    break;
             }
 
             Console.Write("Коментар для водія (наприклад, 'Буду з котом' або залиште порожнім): ");
